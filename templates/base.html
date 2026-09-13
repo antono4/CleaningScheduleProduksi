@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Cleaning Schedule Produksi{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="wrap">
+  <aside class="sidebar">
+    <div class="brand"><span class="logo">🧼</span> Cleaning <span style="font-weight:400;color:#94a3b8">Schedule</span></div>
+    <nav>
+      <a href="{{ url_for('index') }}" class="{{ 'active' if active == 'dashboard' else '' }}">📊 Dashboard</a>
+      <a href="{{ url_for('list_schedules') }}" class="{{ 'active' if active == 'jadwal' else '' }}">📋 Jadwal</a>
+      <a href="{{ url_for('kalender') }}" class="{{ 'active' if active == 'kalender' else '' }}">📅 Kalender</a>
+      <a href="{{ url_for('list_machines') }}" class="{{ 'active' if active == 'mesin' else '' }}">⚙️ Mesin &amp; Area</a>
+      <a href="{{ url_for('laporan') }}" class="{{ 'active' if active == 'laporan' else '' }}">📈 Laporan</a>
+    </nav>
+  </aside>
+  <main class="main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+            <li class="{{ category }}">{{ '✅' if category == 'success' else ('⚠️' if category == 'warning' else '⛔') }} {{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<script src="{{ url_for('static', filename='main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

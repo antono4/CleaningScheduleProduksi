@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if machine else 'Tambah' }} Mesin/Area - Cleaning Schedule Produksi{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>{{ 'Edit' if machine else 'Tambah' }} Mesin / Area</h1>
+    <div class="sub">Definisikan aset produksi yang perlu dibersihkan secara berkala</div>
+  </div>
+  <a class="btn secondary" href="{{ url_for('list_machines') }}">← Kembali</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="POST">
+      <div class="form-grid">
+        <div class="field full">
+          <label for="name">Nama Mesin / Area *</label>
+          <input type="text" id="name" name="name" required placeholder="cth: Mesin Injection A" value="{{ machine['name'] if machine else '' }}">
+        </div>
+        <div class="field">
+          <label for="area">Lokasi / Area</label>
+          <input type="text" id="area" name="area" placeholder="cth: Area Produksi 1" value="{{ machine['area'] if machine and machine['area'] != machine['name'] else '' }}">
+        </div>
+        <div class="field">
+          <label for="cleaning_type">Jenis Cleaning</label>
+          <select id="cleaning_type" name="cleaning_type">
+            {% for t in ['Rutin', 'Deep Clean', 'Sanitasi', 'Preventif', 'Major'] %}
+            <option {{ 'selected' if machine and machine['cleaning_type'] == t }}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="frequency_days">Frekuensi (hari) <span class="hint">0 = tidak dijadwalkan otomatis</span></label>
+          <input type="number" id="frequency_days" name="frequency_days" min="0" value="{{ machine['frequency_days'] if machine else 1 }}">
+        </div>
+        <div class="field">
+          <label for="standard_time_minutes">Standar Waktu (menit)</label>
+          <input type="number" id="standard_time_minutes" name="standard_time_minutes" min="1" value="{{ machine['standard_time_minutes'] if machine else 30 }}">
+        </div>
+        <div class="field full">
+          <label for="notes">Catatan</label>
+          <textarea id="notes" name="notes" rows="3" placeholder="Instruksi pembersihan, alat yang digunakan, dll.">{{ machine['notes'] if machine else '' }}</textarea>
+        </div>
+        <div class="field full">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:500;">
+            <input type="checkbox" name="is_active" {{ 'checked' if not machine or machine['is_active'] }}>
+            Mesin/area ini <strong>aktif</strong> (muncul dalam generate jadwal)
+          </label>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn success" type="submit">{{ '💾 Simpan Perubahan' if machine else '+ Simpan Mesin' }}</button>
+        <a class="btn secondary" href="{{ url_for('list_machines') }}">Batal</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

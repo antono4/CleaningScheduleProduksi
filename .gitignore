@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+cleaning_schedule.db
+*.db-journal
+.venv/
+venv/

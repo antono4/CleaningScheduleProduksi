@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Cleaning Schedule Produksi{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>Dashboard</h1>
+    <div class="sub">{{ today|replace('-', '/') }} · Sekarang {{ now_hm }}</div>
+  </div>
+  <div class="actions">
+    <a class="btn" href="{{ url_for('generate') }}">⚡ Generate Jadwal</a>
+    <a class="btn secondary" href="{{ url_for('schedule_add') }}">+ Jadwal Manual</a>
+  </div>
+</div>
+
+<div class="grid cols-4">
+  <div class="stat blue">
+    <div class="ico">📋</div>
+    <div><div class="label">Total Hari Ini</div><div class="value">{{ today_rows|length }}</div></div>
+  </div>
+  <div class="stat amber">
+    <div class="ico">⏳</div>
+    <div><div class="label">Menunggu</div><div class="value">{{ count_pending }}<span style="font-size:14px;color:var(--muted);font-weight:400"> / {{ count_progress }} proses</span></div></div>
+  </div>
+  <div class="stat green">
+    <div class="ico">✅</div>
+    <div><div class="label">Selesai</div><div class="value">{{ count_done }}</div></div>
+  </div>
+  <div class="stat red">
+    <div class="ico">🚨</div>
+    <div><div class="label">Terlambat</div><div class="value">{{ count_overdue }}</div></div>
+  </div>
+</div>
+
+<div class="grid cols-2" style="margin-top:18px;">
+  <div class="card">
+    <div class="card-head">
+      <h2>🧹 Jadwal Cleaning Hari Ini {{ today|replace('-', '/') }}</h2>
+      <a class="btn secondary sm" href="{{ url_for('list_schedules') }}">Lihat Semua</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Waktu</th><th>Mesin/Area</th><th>Lokasi</th><th>Tipe</th><th>Petugas</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody>
+          {% for r in today_rows %}
+          <tr>
+            <td>
+              {% if r.time_start %} {{ r.time_start }}–{{ r.time_end or '' }} {% else %}
+              <span class="badge shift{{ r.shift[-1] }}">{{ r.shift }}</span>{% endif %}
+            </td>
+            <td><strong>{{ r.machine_name }}</strong></td>
+            <td class="muted">{{ r.area }}</td>
+            <td><span class="badge" style="background:#f1f5f9;color:#475569">{{ r.cleaning_type }}</span></td>
+            <td>{{ r.assigned_to or '—' }}</td>
+            <td><span class="badge {{ r.status_effective }}">{{ r.status_label }}</span></td>
+            <td>
+              <div class="actions">
+                <form method="POST" action="{{ url_for('schedule_status', schedule_id=r.id) }}">
+                  <input type="hidden" name="status" value="in_progress">
+                  <button class="btn warning sm" title="Mulai" {{ 'disabled' if r.status_effective in ['done','overdue'] and r.status_effective == 'in_progress' and r.status == 'in_progress' else '' }}>▶</button>
+                </form>
+                <form method="POST" action="{{ url_for('schedule_status', schedule_id=r.id) }}">
+                  <input type="hidden" name="status" value="done">
+                  <button class="btn success sm" {{ 'disabled' if r.status_effective == 'done' }}>✅</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="empty">Tidak ada jadwal hari ini. <a href="{{ url_for('generate') }}">Generate jadwal</a> atau tambah manual.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-head"><h2>📈 Penyelesaian 7 Hari Terakhir</h2></div>
+      <div class="card-body">
+        {% for s in week_stats %}
+        <div class="progress-stat">
+          <span {% if s.today %}class="today-col"{% endif %}>{{ s.label }}</span>
+          <span>{{ s.done }}/{{ s.total }} selesai</span>
+        </div>
+        <div class="bar-track" style="margin-bottom:12px;">
+          <div class="bar-fill" style="width: {{ (s.done * 100 / s.total) if s.total else 0 }}%"></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <div class="card-head"><h2>🚨 Perlu Perhatian (Terlambat)</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tanggal</th><th>Mesin</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for r in attention %}
+            <tr>
+              <td>{{ r.cleaning_date }}</td>
+              <td>{{ r.machine_name }}</td>
+              <td><span class="badge {{ r.status_effective }}">{{ r.status_label }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3" class="empty">Tidak ada keterlambatan. 👍</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:18px;">
+  <div class="card-head"><h2>🕘 Aktivitas Terakhir</h2></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Selesai Pada</th><th>Mesin/Area</th><th>Lokasi</th><th>Petugas</th></tr></thead>
+      <tbody>
+        {% for r in recent %}
+        <tr><td>{{ r.last_done_at }}</td><td>{{ r.machine_name }}</td><td>{{ r.area }}</td><td>{{ r.assigned_to or '—' }}</td></tr>
+        {% else %}
+        <tr><td colspan="4" class="empty">Belum ada aktivitas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

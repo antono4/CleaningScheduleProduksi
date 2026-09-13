@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Kalender - Cleaning Schedule Produksi{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>Kalender Cleaning</h1>
+    <div class="sub">Tampilan bulanan jadwal pembersihan</div>
+  </div>
+  <a class="btn" href="{{ url_for('generate') }}">⚡ Generate Jadwal</a>
+</div>
+
+<div class="cal-head">
+  <a class="btn secondary sm" href="{{ url_for('kalender', y=prev_y, m=prev_m) }}">‹</a>
+  <div class="month">{{ month_name }}</div>
+  <a class="btn secondary sm" href="{{ url_for('kalender', y=next_y, m=next_m) }}">›</a>
+</div>
+
+<div class="cal">
+  {% for dow in ['Sen','Sel','Rab','Kam','Jum','Sab','Min'] %}
+  <div class="dow">{{ dow }}</div>
+  {% endfor %}
+  {% for c in cells %}
+  <div class="day {{ 'other' if c.other }} {{ 'today' if c.today }}">
+    <div class="num">{{ c.num }}</div>
+    <div class="items">
+      {% for item in c.jobs %}
+      <a class="item {{ item.status_effective }}" href="{{ url_for('list_schedules', date=c.date) }}" title="{{ item.machine_name }} ({{ item.status_label }})">
+        {{ item.time_start or item.shift }} {{ item.machine_name }}
+      </a>
+      {% endfor %}
+      {% if not c.jobs and c.other %}<div class="muted" style="font-size:11px">—</div>{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<p class="muted" style="margin-top:10px; font-size:13px;">
+  <span class="badge scheduled">Terjadwal</span>
+  <span class="badge in_progress">Dalam Proses</span>
+  <span class="badge overdue">Terlambat</span>
+  <span class="badge done">Selesai</span>
+  &nbsp;— klik item untuk melihat detail tanggal.
+</p>
+
+{% endblock %}

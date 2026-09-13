@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Laporan - Cleaning Schedule Produksi{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>Laporan</h1>
+    <div class="sub">Rekap penyelesaian cleaning dalam rentang tanggal</div>
+  </div>
+  <div class="actions">
+    <a class="btn" href="{{ url_for('export_csv', start=start, end=end, status=q_status) }}">⬇️ Export CSV</a>
+  </div>
+</div>
+
+<form method="GET" class="filter-bar">
+  <label class="muted">Dari</label>
+  <input type="date" name="start" value="{{ start }}">
+  <label class="muted">Sampai</label>
+  <input type="date" name="end" value="{{ end }}">
+  <select name="status">
+    <option value="">Semua Status</option>
+    <option value="scheduled" {{ 'selected' if q_status == 'scheduled' }}>Terjadwal</option>
+    <option value="in_progress" {{ 'selected' if q_status == 'in_progress' }}>Dalam Proses</option>
+    <option value="done" {{ 'selected' if q_status == 'done' }}>Selesai</option>
+  </select>
+  <button class="btn secondary sm">Terapkan</button>
+  <a class="btn sm" href="{{ url_for('laporan') }}">Reset</a>
+</form>
+
+<div class="grid cols-4" style="margin-bottom:18px;">
+  <div class="stat blue"><div class="ico">🗂</div><div><div class="label">Total Jadwal</div><div class="value">{{ total }}</div></div></div>
+  <div class="stat green"><div class="ico">✅</div><div><div class="label">Selesai</div><div class="value">{{ completed }}</div></div></div>
+  <div class="stat amber"><div class="ico">📊</div><div><div class="label">Tingkat Selesai</div><div class="value">{{ pct }}%</div></div></div>
+  <div class="stat red"><div class="ico">🚨</div><div><div class="label">Belum Selesai</div><div class="value">{{ total - completed }}</div></div></div>
+</div>
+
+{% if summary %}
+<div class="card" style="margin-bottom:18px;">
+  <div class="card-head"><h2>📊 Ringkasan per Mesin/Area</h2></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Mesin/Area</th><th>Lokasi</th><th>Total Jadwal</th><th>Selesai</th><th>%</th></tr></thead>
+      <tbody>
+        {% for r in summary %}
+        <tr>
+          <td><strong>{{ r.name }}</strong></td>
+          <td class="muted">{{ r.area }}</td>
+          <td>{{ r.total }}</td>
+          <td>{{ r.selesai or 0 }}</td>
+          <td>
+            {% if r.total %}
+            <div class="bar-track" style="width:120px;display:inline-block;vertical-align:middle;">
+              <div class="bar-fill" style="width:{{ (r.selesai or 0) * 100 // r.total }}%"></div>
+            </div>
+            {{ (r.selesai or 0) * 100 // r.total }}%
+            {% else %}<span class="muted">—</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-head"><h2>Rincian Jadwal</h2></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tanggal</th><th>Waktu</th><th>Mesin/Area</th><th>Lokasi</th><th>Petugas</th><th>Status</th><th>Selesai Pada</th></tr></thead>
+      <tbody>
+        {% for s in schedules %}
+        <tr>
+          <td>{{ s.cleaning_date }}</td>
+          <td>{% if s.time_start %}{{ s.time_start }}–{{ s.time_end or '' }}{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td>{{ s.machine_name }}</td>
+          <td class="muted">{{ s.area }}</td>
+          <td>{{ s.assigned_to or '—' }}</td>
+          <td><span class="badge {{ s.status_effective }}">{{ s.status_label }}</span></td>
+          <td>{{ s.last_done_at or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty">Belum ada data pada rentang ini.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

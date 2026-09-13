@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Jadwal - Cleaning Schedule Produksi{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>Jadwal Cleaning</h1>
+    <div class="sub">Kelola jadwal pembersihan mesin &amp; area produksi</div>
+  </div>
+  <div class="actions">
+    <a class="btn secondary" href="{{ url_for('generate') }}">⚡ Generate Otomatis</a>
+    <a class="btn" href="{{ url_for('schedule_add') }}">+ Jadwal Baru</a>
+  </div>
+</div>
+
+<form method="GET" class="filter-bar">
+  <input type="date" name="date" value="{{ q_date }}" title="Filter tanggal">
+  <select name="machine">
+    <option value="">Semua Mesin/Area</option>
+    {% for m in machines %}
+      <option value="{{ m.id }}" {{ 'selected' if q_machine == m.id|string }}>{{ m.name }}</option>
+    {% endfor %}
+  </select>
+  <select name="status">
+    <option value="">Semua Status</option>
+    <option value="scheduled" {{ 'selected' if q_status == 'scheduled' }}>Terjadwal</option>
+    <option value="in_progress" {{ 'selected' if q_status == 'in_progress' }}>Dalam Proses</option>
+    <option value="done" {{ 'selected' if q_status == 'done' }}>Selesai</option>
+  </select>
+  <label class="muted" style="display:flex;align-items:center;gap:6px;">
+    <input type="checkbox" name="done" value="1" {{ 'checked' if q_done_all }}> Tampilkan riwayat selesai <em>(semua tanggal)</em>
+  </label>
+  <button class="btn secondary sm">Terapkan</button>
+  <a class="btn sm" href="{{ url_for('list_schedules') }}">Reset</a>
+</form>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tanggal</th><th>Waktu</th><th>Shift</th><th>Mesin/Area</th><th>Lokasi</th>
+          <th>Petugas</th><th>Status</th><th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in schedules %}
+        <tr>
+          <td {% if s.cleaning_date == q_date %}class="today-col"{% endif %}>{{ s.cleaning_date }}</td>
+          <td>
+            {% if s.time_start %}{{ s.time_start }}–{{ s.time_end or '' }}{% else %}<span class="muted">—</span>{% endif %}
+          </td>
+          <td><span class="badge shift{{ s.shift[-1] }}">{{ s.shift }}</span></td>
+          <td><strong>{{ s.machine_name }}</strong><div class="muted" style="font-size:12px">{{ s.cleaning_type }}</div></td>
+          <td class="muted">{{ s.area }}</td>
+          <td>{{ s.assigned_to or '—' }}</td>
+          <td><span class="badge {{ s.status_effective }}">{{ s.status_label }}</span></td>
+          <td>
+            <div class="actions">
+              <form method="POST" action="{{ url_for('schedule_status', schedule_id=s.id) }}">
+                <input type="hidden" name="status" value="in_progress">
+                <button class="btn warning sm" title="Mulai cleaning" {{ 'disabled' if s.status_effective in ('done', 'overdue') }}>▶</button>
+              </form>
+              <form method="POST" action="{{ url_for('schedule_status', schedule_id=s.id) }}">
+                <input type="hidden" name="status" value="done">
+                <button class="btn success sm" title="Selesai" {{ 'disabled' if s.status_effective == 'done' }}>✅</button>
+              </form>
+              <a class="btn secondary sm" href="{{ url_for('schedule_edit', schedule_id=s.id) }}">✏️</a>
+              <form method="POST" action="{{ url_for('schedule_delete', schedule_id=s.id) }}"
+                    data-confirm="Hapus jadwal ini? Tindakan tidak dapat dibatalkan.">
+                <button class="btn danger sm">🗑</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="empty">Tidak ada jadwal yang cocok. <a href="{{ url_for('schedule_add') }}">Buat jadwal baru</a> atau <a href="{{ url_for('generate') }}">generate otomatis</a>.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

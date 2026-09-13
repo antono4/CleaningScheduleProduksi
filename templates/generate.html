@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Generate Jadwal - Cleaning Schedule Produksi{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>⚡ Generate Jadwal Otomatis</h1>
+    <div class="sub">Buat jadwal berulang berdasarkan frekuensi harian mesin/area yang aktif</div>
+  </div>
+  <a class="btn secondary" href="{{ url_for('list_schedules') }}">← Kembali ke Jadwal</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="POST">
+      <div class="form-grid">
+        <div class="field">
+          <label for="machine_id">Mesin / Area</label>
+          <select id="machine_id" name="machine_id">
+            <option value="">Semua mesin aktif</option>
+            {% for m in machines %}
+            <option value="{{ m.id }}" {{ 'selected' if machine_id == m.id|string }}>
+              {{ m.name }} — {{ m.frequency_days }} hari
+            </option>
+            {% endfor %}
+          </select>
+          <span class="hint">Mesin dengan frekuensi = 0 tidak dijadwalkan.</span>
+        </div>
+        <div class="field">
+          <label for="shift_default">Shift Default</label>
+          <select id="shift_default" name="shift_default">
+            <option value="Shift 1" {{ 'selected' if shift_default == 'Shift 1' }}>Shift 1 (06:00-14:00)</option>
+            <option value="Shift 2" {{ 'selected' if shift_default == 'Shift 2' }}>Shift 2 (14:00-22:00)</option>
+            <option value="Shift 3" {{ 'selected' if shift_default == 'Shift 3' }}>Shift 3 (22:00-06:00)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="start">Tanggal Mulai *</label>
+          <input type="date" id="start" name="start" required value="{{ start }}">
+        </div>
+        <div class="field">
+          <label for="end">Tanggal Selesai</label>
+          <input type="date" id="end" name="end" value="{{ end }}">
+          <span class="hint">Kosongkan = hanya tanggal mulai.</span>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn" type="submit">⚡ Generate Sekarang</button>
+        <a class="btn secondary" href="{{ url_for('list_schedules') }}">Batal</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card" style="margin-top:18px;">
+  <div class="card-head"><h2>Fitur</h2></div>
+  <div class="card-body">
+    <ul style="padding-left:20px; color:#334155; display:grid; gap:6px;">
+      <li>Menghasilkan jadwal untuk semua <strong>mesin aktif</strong> pada rentang tanggal yang dipilih.</li>
+      <li>Frekuensi dihitung dari tanggal mulai: mesin dengan frekuensi <strong>1</strong> dijadwalkan setiap hari, <strong>2</strong> setiap 2 hari, dan seterusnya.</li>
+      <li>Jadwal yang <strong>sudah ada</strong> (mesin + tanggal + shift sama) otomatis dilewati agar tidak dobel.</li>
+      <li>Waktu mulai-selesai mengikuti shift default yang dipilih.</li>
+    </ul>
+  </div>
+</div>
+
+{% endblock %}

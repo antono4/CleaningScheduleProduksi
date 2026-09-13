@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if schedule else 'Tambah' }} Jadwal - Cleaning Schedule Produksi{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>{{ 'Edit' if schedule else 'Tambah' }} Jadwal Cleaning</h1>
+    <div class="sub">Atur jadwal pembersihan secara manual</div>
+  </div>
+  <a class="btn secondary" href="{{ url_for('list_schedules') }}">← Kembali</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="POST">
+      <div class="form-grid">
+        <div class="field">
+          <label for="machine_id">Mesin / Area *</label>
+          <select id="machine_id" name="machine_id" required>
+            <option value="">— Pilih mesin / area —</option>
+            {% for m in machines %}
+            <option value="{{ m.id }}" {{ 'selected' if (schedule and schedule['machine_id'] == m.id) or (not schedule and machine_id == m.id|string) }}>
+              {{ m.name }}{% if m.area and m.area != m.name %} — {{ m.area }}{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="cleaning_date">Tanggal *</label>
+          <input type="date" id="cleaning_date" name="cleaning_date" required value="{{ schedule['cleaning_date'] if schedule else '' }}">
+        </div>
+        <div class="field">
+          <label for="shift">Shift</label>
+          <select id="shift" name="shift">
+            {% for key, val in [('Shift 1', 'Shift 1 (06:00-14:00)'), ('Shift 2', 'Shift 2 (14:00-22:00)'), ('Shift 3', 'Shift 3 (22:00-06:00)')] %}
+            <option value="{{ key }}" {{ 'selected' if schedule and schedule['shift'] == key }}>{{ val }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="assigned_to">Petugas</label>
+          <input type="text" id="assigned_to" name="assigned_to" placeholder="Nama petugas / tim" value="{{ schedule['assigned_to'] if schedule else '' }}">
+        </div>
+        <div class="field">
+          <label for="time_start">Waktu Mulai</label>
+          <input type="time" id="time_start" name="time_start" value="{{ schedule['time_start'] if schedule else '' }}">
+        </div>
+        <div class="field">
+          <label for="time_end">Waktu Selesai</label>
+          <input type="time" id="time_end" name="time_end" value="{{ schedule['time_end'] if schedule else '' }}">
+        </div>
+        <div class="field">
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            {% for key, label in [('scheduled', 'Terjadwal'), ('in_progress', 'Dalam Proses'), ('done', 'Selesai')] %}
+            <option value="{{ key }}" {{ 'selected' if schedule and schedule['status'] == key }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field full">
+          <label for="notes">Catatan</label>
+          <textarea id="notes" name="notes" rows="3" placeholder="Catatan khusus untuk jadwal ini">{{ schedule['notes'] if schedule else '' }}</textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn success" type="submit">{{ '💾 Simpan Perubahan' if schedule else '+ Simpan Jadwal' }}</button>
+        <a class="btn secondary" href="{{ url_for('list_schedules') }}">Batal</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

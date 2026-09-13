@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Mesin &amp; Area - Cleaning Schedule Produksi{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>Mesin &amp; Area</h1>
+    <div class="sub">Daftar aset yang dijadwalkan untuk pembersihan</div>
+  </div>
+  <a class="btn" href="{{ url_for('machine_add') }}">+ Tambah Mesin/Area</a>
+</div>
+
+<form method="GET" class="filter-bar">
+  <input type="text" name="q" value="{{ q }}" placeholder="Cari nama mesin...">
+  <select name="area">
+    <option value="">Semua Area</option>
+    {% for a in areas %}<option value="{{ a }}" {{ 'selected' if q_area == a }}>{{ a }}</option>{% endfor %}
+  </select>
+  <select name="status">
+    <option value="">Semua Status</option>
+    <option value="1" {{ 'selected' if q_status == '1' }}>Aktif</option>
+    <option value="0" {{ 'selected' if q_status == '0' }}>Nonaktif</option>
+  </select>
+  <button class="btn secondary sm">Terapkan</button>
+  <a class="btn sm" href="{{ url_for('list_machines') }}">Reset</a>
+</form>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Mesin/Area</th><th>Lokasi</th><th>Jenis Cleaning</th><th>Frekuensi</th>
+          <th>Std. Waktu</th><th>Jadwal Aktif</th><th>Status</th><th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in machines %}
+        <tr>
+          <td><strong>{{ m.name }}</strong></td>
+          <td class="muted">{{ m.area }}</td>
+          <td><span class="badge" style="background:#f1f5f9;color:#475569">{{ m.cleaning_type }}</span></td>
+          <td>{% if m.frequency_days %}{{ m.frequency_days }} hari{% else %}—{% endif %}</td>
+          <td>{{ m.standard_time_minutes }} mnt</td>
+          <td>
+            {% if m.pending_jobs %}<span class="badge in_progress">{{ m.pending_jobs }} antrean</span>
+            {% else %}<span class="badge done">Tidak ada</span>{% endif %}
+          </td>
+          <td><span class="badge {{ 'active' if m.is_active else 'inactive' }}">{{ 'Aktif' if m.is_active else 'Nonaktif' }}</span></td>
+          <td>
+            <div class="actions">
+              <a class="btn secondary sm" href="{{ url_for('schedule_add', machine_id=m.id) }}">+ Jadwal</a>
+              <a class="btn secondary sm" href="{{ url_for('machine_edit', machine_id=m.id) }}">✏️</a>
+              <form method="POST" action="{{ url_for('machine_toggle', machine_id=m.id) }}">
+                <button class="btn warning sm" title="Aktif/Nonaktif">{{ '⏸' if m.is_active else '▶️' }}</button>
+              </form>
+              <form method="POST" action="{{ url_for('machine_delete', machine_id=m.id) }}"
+                    data-confirm="Hapus '{{ m.name }}' beserta seluruh jadwalnya?">
+                <button class="btn danger sm">🗑</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="empty">Belum ada data mesin/area. <a href="{{ url_for('machine_add') }}">Tambahkan sekarang</a>.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
