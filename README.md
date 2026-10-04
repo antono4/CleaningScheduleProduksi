@@ -1,1 +1,31 @@
-Last updated: 2026-10-04 21:27:04 WIB
+# CleaningScheduleProduksi
+
+
+
+## 📋 Overview
+
+This repository contains **20 files** and is built with the following technologies:
+
+Python
+
+## 🚀 Quick Start
+
+```bash
+pip install -r requirements.txt
+python main.py
+```
+
+## ✨ Features
+
+- 📝 Auto-generated documentation
+
+## 🛠️ Technologies
+
+Python
+
+## 📄 License
+
+MIT License
+
+---
+*Last updated: 2026-10-05 01:09:29 WIB*
